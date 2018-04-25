@@ -17,7 +17,6 @@ import org.slf4j.Logger;
 
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Updates.combine;
-import static com.mongodb.client.model.Updates.push;
 import static com.mongodb.client.model.Updates.set;
 
 public class SequenceWriterThread implements Runnable {
@@ -92,7 +91,7 @@ public class SequenceWriterThread implements Runnable {
                             eq("_id", document.getObjectId("_id")),
                             combine(
                                     set("longTtlSegs", lSegs),
-                                    set("sortTtlSegs", sSegs)
+                                    set("shortTtlSegs", sSegs)
                             ),
                             new UpdateOptions().upsert(true),
                             resultCallback
