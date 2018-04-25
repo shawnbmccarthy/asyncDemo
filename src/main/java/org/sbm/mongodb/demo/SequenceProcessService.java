@@ -26,7 +26,8 @@ public class SequenceProcessService implements Runnable {
     private ConcurrentLinkedQueue<Document> workQueue;
     private List<String> uuidCache;
     private boolean isRunning;
-
+    private int rthreads;
+    private int wthreads;
     public SequenceProcessService(String muri, String collection, List<String> cache, int rthreads, int wthreads, int runtimeMinutes){
         log.debug("Starting SqequenceProcessService");
         ConnectionString u = new ConnectionString(muri);
@@ -43,9 +44,16 @@ public class SequenceProcessService implements Runnable {
 
     public void startExecution(){
         log.debug("starting execution");
-        while(isRunning){
+        for(int i = 0; i <= rthreads; i++) {
             rPool.execute(new SequenceReaderThread(coll, workQueue, uuidCache));
+        }
+
+        for(int i = 0; i<= wthreads; i++){
             wPool.execute(new SequenceWriterThread(coll, workQueue));
+        }
+
+        while(true){
+            ;
         }
     }
 

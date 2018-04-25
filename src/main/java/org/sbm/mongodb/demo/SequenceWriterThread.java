@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Updates.combine;
 import static com.mongodb.client.model.Updates.push;
+import static com.mongodb.client.model.Updates.set;
 
 public class SequenceWriterThread implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(SequenceWriterThread.class);
@@ -33,56 +34,66 @@ public class SequenceWriterThread implements Runnable {
 
     public void run() {
         log.debug("sequence writer running");
-        final long start = System.currentTimeMillis();
         final SingleResultCallback<UpdateResult> resultCallback = new SingleResultCallback<UpdateResult>() {
             public void onResult(UpdateResult updateResult, Throwable throwable) {
                 /* todo: change the log.error stuff */
                 if(throwable != null){
                     log.error("error: {}", throwable.getLocalizedMessage());
                 } else {
-                    long end = System.currentTimeMillis() - start;
-                    log.error("found result: {}, took: {}(ms)", updateResult.toString(), end);
+                    log.info("found result: {}", updateResult.toString());
                 }
             }
         };
 
+        Document document;
+        Document shortSegDoc;
+        Document longSegDoc;
+        List<Document> sSegs;
+        List<Document> lSegs;
         while(true) {
             if(queue.size() > 0) {
                 log.debug("queue size: {}", queue.size());
 
                 try {
-                    Document d = queue.remove();
-                    log.debug("retrieved: _id={}", d.getObjectId("_id"));
-                    List<Document> sSegs = (List<Document>) d.get("shortTtlSegs");
-                    List<Document> lSegs = (List<Document>) d.get("longTtlSegs");
+                    document = queue.remove();
+                    log.debug("retrieved: _id={}", document.getObjectId("_id"));
+                    sSegs = (List<Document>) document.get("shortTtlSegs");
+                    lSegs = (List<Document>) document.get("longTtlSegs");
 
                     if (sSegs.size() > 0) {
                         for (int i = 0; i < sSegs.size(); i++) {
-                            Document sd = sSegs.get(i);
-                            Iterator<String> iKeys = sd.keySet().iterator();
+                            shortSegDoc = sSegs.get(i);
+                            Iterator<String> iKeys = shortSegDoc.keySet().iterator();
                             while (iKeys.hasNext()) {
-                                Date date = d.getDate(iKeys.next());
+                                Date date = shortSegDoc.getDate(iKeys.next());
                             }
                         }
+                    } else {
+                        sSegs.add(new Document("sts1", new Date()));
                     }
 
                     if (lSegs.size() > 0) {
                         for (int i = 0; i < lSegs.size(); i++) {
-                            Document sd = lSegs.get(i);
-                            Iterator<String> iKeys = sd.keySet().iterator();
+                            longSegDoc = lSegs.get(i);
+                            Iterator<String> iKeys = longSegDoc.keySet().iterator();
                             while (iKeys.hasNext()) {
                                 String k = iKeys.next();
-                                Date date = d.getDate(k);
+                                Date date = longSegDoc.getDate(k);
                                 if (k.equals("sbmSeg")) {
-                                    d.remove(k);
+                                    lSegs.remove(i);
                                 }
                             }
                         }
                     }
 
+                    lSegs.add(new Document().append("sbmSeg", new Date()));
+
                     collection.updateOne(
-                            eq("_id", d.getObjectId("_id")),
-                            combine(push("longTtlSegs", lSegs.add(new Document("sbmSeg", new Date())))),
+                            eq("_id", document.getObjectId("_id")),
+                            combine(
+                                    set("longTtlSegs", lSegs),
+                                    set("sortTtlSegs", sSegs)
+                            ),
                             new UpdateOptions().upsert(true),
                             resultCallback
                     );

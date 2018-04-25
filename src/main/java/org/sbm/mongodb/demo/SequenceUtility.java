@@ -64,15 +64,15 @@ public class SequenceUtility {
             d.put("pid", random.nextInt(noOfDocuments)); // not really worried about the idea of the pid right now
 
             /* no more than 5 uuids per doc right now */
-            for(j = 1; j < (random.nextInt(5)+1); j++){
+            for(j = 1; j <= (random.nextInt(5)+1); j++){
                 uuids.add(UUID.randomUUID().toString());
             }
 
-            for(j = 1; j < (random.nextInt(10)+1); j++){
+            for(j = 1; j <= (random.nextInt(10)+1); j++){
                 sTtlSegs.add(new Document("sts" + j, new Date()));
             }
 
-            for(j = 1; j < (random.nextInt(10)+1); j++){
+            for(j = 1; j <= (random.nextInt(10)+1); j++){
                 lTtlSegs.add(new Document("lts" + j, new Date()));
             }
 
