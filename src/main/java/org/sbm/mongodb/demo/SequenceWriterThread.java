@@ -36,6 +36,7 @@ public class SequenceWriterThread implements Runnable {
         final long start = System.currentTimeMillis();
         final SingleResultCallback<UpdateResult> resultCallback = new SingleResultCallback<UpdateResult>() {
             public void onResult(UpdateResult updateResult, Throwable throwable) {
+                /* todo: change the log.error stuff */
                 if(throwable != null){
                     log.error("error: {}", throwable.getLocalizedMessage());
                 } else {
