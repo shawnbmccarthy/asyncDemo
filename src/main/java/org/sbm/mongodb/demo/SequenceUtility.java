@@ -61,27 +61,27 @@ public class SequenceUtility {
             List<Document> lTtlSegs = new ArrayList<Document>();
 
             Document d = new Document("_id", new BsonObjectId());
-            d.append("pid", random.nextInt(noOfDocuments)); // not really worried about the idea of the pid right now
+            d.put("pid", random.nextInt(noOfDocuments)); // not really worried about the idea of the pid right now
 
             /* no more than 5 uuids per doc right now */
-            for(j = 0; j < random.nextInt(5); j++){
+            for(j = 1; j < (random.nextInt(5)+1); j++){
                 uuids.add(UUID.randomUUID().toString());
             }
 
-            for(j = 0; j < random.nextInt(10); j++){
+            for(j = 1; j < (random.nextInt(10)+1); j++){
                 sTtlSegs.add(new Document("sts" + j, new Date()));
             }
 
-            for(j = 0; j < random.nextInt(10); j++){
+            for(j = 1; j < (random.nextInt(10)+1); j++){
                 lTtlSegs.add(new Document("lts" + j, new Date()));
             }
 
-            d.append("shortTtlSegs", sTtlSegs);
-            d.append("longTtlSegs", lTtlSegs);
-            d.append("expireAt", new Date());
-            d.append("wasUpdated", true);
-            d.append("createDate", new Date());
-            d.append("uuid", uuids);
+            d.put("shortTtlSegs", sTtlSegs);
+            d.put("longTtlSegs", lTtlSegs);
+            d.put("expireAt", new Date());
+            d.put("wasUpdated", true);
+            d.put("createDate", new Date());
+            d.put("uuid", uuids);
 
             toInsert.add(d);
             if(toInsert.size() >= 1000){

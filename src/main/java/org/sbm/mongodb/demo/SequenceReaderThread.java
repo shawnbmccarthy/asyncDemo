@@ -56,6 +56,11 @@ public class SequenceReaderThread implements Runnable {
             collection.find(
                     eq("uuid", uuidCache.get(random.nextInt(uuidCache.size())))
             ).first(collectionCallback);
+            try {
+                Thread.sleep(10);
+            } catch(InterruptedException ie){
+                log.warn("IE: {}", ie.getLocalizedMessage());
+            }
         }
     }
 }

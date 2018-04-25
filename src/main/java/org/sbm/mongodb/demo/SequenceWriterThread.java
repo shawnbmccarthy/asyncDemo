@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Updates.combine;
-import static com.mongodb.client.model.Updates.set;
+import static com.mongodb.client.model.Updates.push;
 
 public class SequenceWriterThread implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(SequenceWriterThread.class);
@@ -37,10 +37,10 @@ public class SequenceWriterThread implements Runnable {
         final SingleResultCallback<UpdateResult> resultCallback = new SingleResultCallback<UpdateResult>() {
             public void onResult(UpdateResult updateResult, Throwable throwable) {
                 if(throwable != null){
-                    log.warn("error: {}", throwable.getLocalizedMessage());
+                    log.error("error: {}", throwable.getLocalizedMessage());
                 } else {
                     long end = System.currentTimeMillis() - start;
-                    log.debug("found result: {}, took: {}(ms)", updateResult.toString(), end);
+                    log.error("found result: {}, took: {}(ms)", updateResult.toString(), end);
                 }
             }
         };
@@ -81,7 +81,7 @@ public class SequenceWriterThread implements Runnable {
 
                     collection.updateOne(
                             eq("_id", d.getObjectId("_id")),
-                            combine(set("longTtlSegs", lSegs.add(new Document("sbmSeg", new Date())))),
+                            combine(push("longTtlSegs", lSegs.add(new Document("sbmSeg", new Date())))),
                             new UpdateOptions().upsert(true),
                             resultCallback
                     );
